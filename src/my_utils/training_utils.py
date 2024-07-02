@@ -92,6 +92,7 @@ def parse_args_paired_training(input_args=None):
     parser.add_argument("--mixed_precision", type=str, default=None, choices=["no", "fp16", "bf16"],)
     parser.add_argument("--enable_xformers_memory_efficient_attention", action="store_true", help="Whether or not to use xformers.")
     parser.add_argument("--set_grads_to_none", action="store_true",)
+    parser.add_argument("--prompt_name", type=str, default='_prompts.json')
 
     if input_args is not None:
         args = parser.parse_args(input_args)
@@ -212,11 +213,30 @@ def build_transform(image_prep):
         ])
     elif image_prep == "no_resize":
         T = transforms.Lambda(lambda x: x)
+    elif image_prep == "random_vary_input":
+        T = transforms.Compose([
+            transforms.ColorJitter(brightness=0.2, contrast=0.2, hue=0.1),
+            transforms.GaussianBlur(kernel_size=5, sigma=(0.2, 4.)),
+            transforms.Resize(512, interpolation=transforms.InterpolationMode.LANCZOS),
+            transforms.CenterCrop(512),
+        ])
+
+    elif image_prep == "resized_crop_256":
+        T = transforms.Compose([
+            transforms.Resize(256, interpolation=transforms.InterpolationMode.LANCZOS),
+            transforms.CenterCrop(256),
+        ])
+
+    elif image_prep == "resized_crop_128":
+        T = transforms.Compose([
+            transforms.Resize(128, interpolation=transforms.InterpolationMode.LANCZOS),
+            transforms.CenterCrop(128),
+        ])
     return T
 
 
 class PairedDataset(torch.utils.data.Dataset):
-    def __init__(self, dataset_folder, split, image_prep, tokenizer):
+    def __init__(self, dataset_folder, split, image_prep, tokenizer, prompt_name):
         """
         Itialize the paired dataset object for loading and transforming paired data samples
         from specified dataset folders.
@@ -237,15 +257,16 @@ class PairedDataset(torch.utils.data.Dataset):
         if split == "train":
             self.input_folder = os.path.join(dataset_folder, "train_A")
             self.output_folder = os.path.join(dataset_folder, "train_B")
-            captions = os.path.join(dataset_folder, "train_prompts.json")
+            captions = os.path.join(dataset_folder, "train"+prompt_name)
         elif split == "test":
             self.input_folder = os.path.join(dataset_folder, "test_A")
             self.output_folder = os.path.join(dataset_folder, "test_B")
-            captions = os.path.join(dataset_folder, "test_prompts.json")
+            captions = os.path.join(dataset_folder, "test"+prompt_name)
         with open(captions, "r") as f:
             self.captions = json.load(f)
         self.img_names = list(self.captions.keys())
         self.T = build_transform(image_prep)
+        self.random_input_T = build_transform("random_vary_input")
         self.tokenizer = tokenizer
 
     def __len__(self):
@@ -289,6 +310,7 @@ class PairedDataset(torch.utils.data.Dataset):
 
         # input images scaled to 0,1
         img_t = self.T(input_img)
+        #img_t = self.random_input_T(input_img)
         img_t = F.to_tensor(img_t)
         # output images scaled to -1,1
         output_t = self.T(output_img)

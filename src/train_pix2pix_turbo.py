@@ -48,6 +48,9 @@ def main(args):
     if args.pretrained_model_name_or_path == "stabilityai/sd-turbo":
         net_pix2pix = Pix2Pix_Turbo(lora_rank_unet=args.lora_rank_unet, lora_rank_vae=args.lora_rank_vae)
         net_pix2pix.set_train()
+    else:
+        net_pix2pix = Pix2Pix_Turbo(pretrained_path=args.pretrained_model_name_or_path, lora_rank_unet=args.lora_rank_unet, lora_rank_vae=args.lora_rank_vae)
+        net_pix2pix.set_train()
 
     if args.enable_xformers_memory_efficient_attention:
         if is_xformers_available():
@@ -111,9 +114,9 @@ def main(args):
             num_training_steps=args.max_train_steps * accelerator.num_processes,
             num_cycles=args.lr_num_cycles, power=args.lr_power)
 
-    dataset_train = PairedDataset(dataset_folder=args.dataset_folder, image_prep=args.train_image_prep, split="train", tokenizer=net_pix2pix.tokenizer)
+    dataset_train = PairedDataset(dataset_folder=args.dataset_folder, image_prep=args.train_image_prep, split="train", tokenizer=net_pix2pix.tokenizer, prompt_name=args.prompt_name)
     dl_train = torch.utils.data.DataLoader(dataset_train, batch_size=args.train_batch_size, shuffle=True, num_workers=args.dataloader_num_workers)
-    dataset_val = PairedDataset(dataset_folder=args.dataset_folder, image_prep=args.test_image_prep, split="test", tokenizer=net_pix2pix.tokenizer)
+    dataset_val = PairedDataset(dataset_folder=args.dataset_folder, image_prep=args.test_image_prep, split="test", tokenizer=net_pix2pix.tokenizer, prompt_name=args.prompt_name)
     dl_val = torch.utils.data.DataLoader(dataset_val, batch_size=1, shuffle=False, num_workers=0)
 
     # Prepare everything with our `accelerator`.

@@ -112,21 +112,55 @@ class Pix2Pix_Turbo(torch.nn.Module):
             for k in sd["state_dict_unet"]:
                 _sd_unet[k] = sd["state_dict_unet"][k]
             unet.load_state_dict(_sd_unet)
+            
+        elif pretrained_path is not None:            
+            if "zigbang" in pretrained_name:
+                outf = os.path.join(pretrained_name)
+                p_ckpt = outf
+                sd = torch.load(p_ckpt, map_location="cpu")
+                unet_lora_config = LoraConfig(r=sd["rank_unet"], init_lora_weights="gaussian", target_modules=sd["unet_lora_target_modules"])
+                vae_lora_config = LoraConfig(r=sd["rank_vae"], init_lora_weights="gaussian", target_modules=sd["vae_lora_target_modules"])
+                vae.add_adapter(vae_lora_config, adapter_name="vae_skip")
+                _sd_vae = vae.state_dict()
+                for k in sd["state_dict_vae"]:
+                    _sd_vae[k] = sd["state_dict_vae"][k]
+                vae.load_state_dict(_sd_vae)
+                unet.add_adapter(unet_lora_config)
+                _sd_unet = unet.state_dict()
+                for k in sd["state_dict_unet"]:
+                    _sd_unet[k] = sd["state_dict_unet"][k]
+                unet.load_state_dict(_sd_unet)
 
-        elif pretrained_path is not None:
-            sd = torch.load(pretrained_path, map_location="cpu")
-            unet_lora_config = LoraConfig(r=sd["rank_unet"], init_lora_weights="gaussian", target_modules=sd["unet_lora_target_modules"])
-            vae_lora_config = LoraConfig(r=sd["rank_vae"], init_lora_weights="gaussian", target_modules=sd["vae_lora_target_modules"])
-            vae.add_adapter(vae_lora_config, adapter_name="vae_skip")
-            _sd_vae = vae.state_dict()
-            for k in sd["state_dict_vae"]:
-                _sd_vae[k] = sd["state_dict_vae"][k]
-            vae.load_state_dict(_sd_vae)
-            unet.add_adapter(unet_lora_config)
-            _sd_unet = unet.state_dict()
-            for k in sd["state_dict_unet"]:
-                _sd_unet[k] = sd["state_dict_unet"][k]
-            unet.load_state_dict(_sd_unet)
+            else:
+                sd = torch.load(pretrained_path, map_location="cpu")
+                unet_lora_config = LoraConfig(r=sd["rank_unet"], init_lora_weights="gaussian", target_modules=sd["unet_lora_target_modules"])
+                vae_lora_config = LoraConfig(r=sd["rank_vae"], init_lora_weights="gaussian", target_modules=sd["vae_lora_target_modules"])
+                vae.add_adapter(vae_lora_config, adapter_name="vae_skip")
+                _sd_vae = vae.state_dict()
+                for k in sd["state_dict_vae"]:
+                    _sd_vae[k] = sd["state_dict_vae"][k]
+                vae.load_state_dict(_sd_vae)
+                unet.add_adapter(unet_lora_config)
+                _sd_unet = unet.state_dict()
+                for k in sd["state_dict_unet"]:
+                    _sd_unet[k] = sd["state_dict_unet"][k]
+                unet.load_state_dict(_sd_unet)
+                
+                target_modules_vae = ["conv1", "conv2", "conv_in", "conv_shortcut", "conv", "conv_out",
+                    "skip_conv_1", "skip_conv_2", "skip_conv_3", "skip_conv_4",
+                    "to_k", "to_q", "to_v", "to_out.0",
+                ]
+                target_modules_unet = [
+                    "to_k", "to_q", "to_v", "to_out.0", "conv", "conv1", "conv2", "conv_shortcut", "conv_out",
+                    "proj_in", "proj_out", "ff.net.2", "ff.net.0.proj"
+                ]
+                unet_lora_config = LoraConfig(r=lora_rank_unet, init_lora_weights="gaussian",
+                    target_modules=target_modules_unet
+                )
+                self.lora_rank_unet = lora_rank_unet
+                self.lora_rank_vae = lora_rank_vae
+                self.target_modules_vae = target_modules_vae
+                self.target_modules_unet = target_modules_unet
 
         elif pretrained_name is None and pretrained_path is None:
             print("Initializing model with random weights")
@@ -153,7 +187,7 @@ class Pix2Pix_Turbo(torch.nn.Module):
             self.lora_rank_vae = lora_rank_vae
             self.target_modules_vae = target_modules_vae
             self.target_modules_unet = target_modules_unet
-
+            
         # unet.enable_xformers_memory_efficient_attention()
         unet.to("cuda")
         vae.to("cuda")
