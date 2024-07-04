@@ -116,7 +116,7 @@ def main(args):
 
     dataset_train = PairedDataset(dataset_folder=args.dataset_folder, split="train", image_prep=args.train_image_prep, input_image_prep=args.input_image_prep, tokenizer=net_pix2pix.tokenizer, prompt_name=args.prompt_name)
     dl_train = torch.utils.data.DataLoader(dataset_train, batch_size=args.train_batch_size, shuffle=True, num_workers=args.dataloader_num_workers)
-    dataset_val = PairedDataset(dataset_folder=args.dataset_folder, split="test", image_prep=args.test_image_prep, input_image_prep=args.test_image_prep, tokenizer=net_pix2pix.tokenizer, prompt_name=args.prompt_name)
+    dataset_val = PairedDataset(dataset_folder=args.dataset_folder, split="test", image_prep=args.test_image_prep, tokenizer=net_pix2pix.tokenizer, prompt_name=args.prompt_name)
     dl_val = torch.utils.data.DataLoader(dataset_val, batch_size=1, shuffle=False, num_workers=0)
 
     # Prepare everything with our `accelerator`.

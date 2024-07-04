@@ -51,7 +51,7 @@ if __name__ == "__main__":
         #new_width = int(new_height * (input_image.width / input_image.height))
         #new_width = new_width - new_width % 8
         
-        #input_image = input_image.filter(ImageFilter.BLUR)
+        input_image = input_image.filter(ImageFilter.BLUR)
 
         input_image = input_image.resize((new_width, new_height), Image.LANCZOS)
         bname = input_name

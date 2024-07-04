@@ -241,6 +241,8 @@ def build_transform(image_prep):
         T = transforms.Compose([
             transforms.ColorJitter(brightness=0.3, contrast=0.3, hue=0.2),
             transforms.GaussianBlur(kernel_size=5, sigma=(0.2, 4.)),
+            transforms.GaussianNoise(),
+            transforms.RandomPhotometricDistort(p=0.2),
             transforms.Resize(256, interpolation=transforms.InterpolationMode.LANCZOS),
             transforms.CenterCrop(256),
         ])
@@ -248,6 +250,8 @@ def build_transform(image_prep):
         T = transforms.Compose([
             transforms.ColorJitter(brightness=0.3, contrast=0.3, hue=0.2),
             transforms.GaussianBlur(kernel_size=5, sigma=(0.2, 4.)),
+            transforms.GaussianNoise(),
+            transforms.RandomPhotometricDistort(p=0.2),
             transforms.Resize(192, interpolation=transforms.InterpolationMode.LANCZOS),
             transforms.CenterCrop(192),
         ])
@@ -255,6 +259,8 @@ def build_transform(image_prep):
         T = transforms.Compose([
             transforms.ColorJitter(brightness=0.3, contrast=0.3, hue=0.2),
             transforms.GaussianBlur(kernel_size=5, sigma=(0.2, 4.)),
+            transforms.GaussianNoise(),
+            transforms.RandomPhotometricDistort(p=0.2),
             transforms.Resize(128, interpolation=transforms.InterpolationMode.LANCZOS),
             transforms.CenterCrop(128),
         ])
@@ -384,7 +390,7 @@ class PairedDataset(torch.utils.data.Dataset):
                 elif 0.5 < random_img_size_param < 0.8:
                     img_size = 192
                     img_t = self.random_input_T_s192(input_img)
-                else:
+                elif 0.8 < random_img_size_param:
                     img_size = 128
                     img_t = self.random_input_T_s128(input_img)
             else:
@@ -406,17 +412,7 @@ class PairedDataset(torch.utils.data.Dataset):
                 
         img_t = F.to_tensor(img_t)
         # output images scaled to -1,1
-        if self.split == 'train' and self.input_image_prep == 'stronger_vary_input':
-            if img_size == 256:
-                output_t = self.T_s256(output_img)
-            elif img_size == 192:
-                output_t = self.T_s192(output_img)
-            elif img_size == 128:
-                output_t = self.T_s128(output_img)
-            else:
-                output_t = self.T_s256(output_img)
-        else:
-            output_t = self.T(output_img)
+        output_t = self.T(output_img)
         output_t = F.to_tensor(output_t)
         output_t = F.normalize(output_t, mean=[0.5], std=[0.5])
 
