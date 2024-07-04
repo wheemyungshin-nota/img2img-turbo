@@ -30,6 +30,7 @@ def parse_args_paired_training(input_args=None):
     parser.add_argument("--dataset_folder", required=True, type=str)
     parser.add_argument("--train_image_prep", default="resized_crop_512", type=str)
     parser.add_argument("--test_image_prep", default="resized_crop_512", type=str)
+    parser.add_argument("--input_image_prep", default="resized_crop_512", type=str)
 
     # validation eval args
     parser.add_argument("--eval_freq", default=100, type=int)
@@ -213,12 +214,19 @@ def build_transform(image_prep):
         ])
     elif image_prep == "no_resize":
         T = transforms.Lambda(lambda x: x)
-    elif image_prep == "random_vary_input":
+    elif image_prep == "random_vary_input_s512":
         T = transforms.Compose([
             transforms.ColorJitter(brightness=0.2, contrast=0.2, hue=0.1),
             transforms.GaussianBlur(kernel_size=5, sigma=(0.2, 4.)),
             transforms.Resize(512, interpolation=transforms.InterpolationMode.LANCZOS),
             transforms.CenterCrop(512),
+        ])
+    elif image_prep == "random_vary_input_s256":
+        T = transforms.Compose([
+            transforms.ColorJitter(brightness=0.2, contrast=0.2, hue=0.1),
+            transforms.GaussianBlur(kernel_size=5, sigma=(0.2, 4.)),
+            transforms.Resize(256, interpolation=transforms.InterpolationMode.LANCZOS),
+            transforms.CenterCrop(256),
         ])
 
     elif image_prep == "resized_crop_256":
@@ -236,7 +244,7 @@ def build_transform(image_prep):
 
 
 class PairedDataset(torch.utils.data.Dataset):
-    def __init__(self, dataset_folder, split, image_prep, tokenizer, prompt_name):
+    def __init__(self, dataset_folder, split, image_prep, input_image_prep, tokenizer, prompt_name):
         """
         Itialize the paired dataset object for loading and transforming paired data samples
         from specified dataset folders.
@@ -254,6 +262,7 @@ class PairedDataset(torch.utils.data.Dataset):
         - tokenizer: The tokenizer used for tokenizing the captions (or prompts).
         """
         super().__init__()
+        self.split = split
         if split == "train":
             self.input_folder = os.path.join(dataset_folder, "train_A")
             self.output_folder = os.path.join(dataset_folder, "train_B")
@@ -266,7 +275,7 @@ class PairedDataset(torch.utils.data.Dataset):
             self.captions = json.load(f)
         self.img_names = list(self.captions.keys())
         self.T = build_transform(image_prep)
-        self.random_input_T = build_transform("random_vary_input")
+        self.random_input_T = build_transform(input_image_prep)
         self.tokenizer = tokenizer
 
     def __len__(self):
@@ -308,14 +317,25 @@ class PairedDataset(torch.utils.data.Dataset):
         output_img = Image.open(os.path.join(self.output_folder, img_name))
         caption = self.captions[img_name]
 
+
+        if self.split == 'train':
+            if random.random() < 0.5:
+                input_img = input_img.transpose(Image.FLIP_LEFT_RIGHT)
+                output_img = output_img.transpose(Image.FLIP_LEFT_RIGHT)
+
         # input images scaled to 0,1
-        img_t = self.T(input_img)
-        #img_t = self.random_input_T(input_img)
+        #img_t = self.T(input_img)
+        if self.split == 'train':
+            img_t = self.random_input_T(input_img)
+        else:
+            img_t = self.T(input_img)
+                
         img_t = F.to_tensor(img_t)
         # output images scaled to -1,1
         output_t = self.T(output_img)
         output_t = F.to_tensor(output_t)
         output_t = F.normalize(output_t, mean=[0.5], std=[0.5])
+
 
         input_ids = self.tokenizer(
             caption, max_length=self.tokenizer.model_max_length,

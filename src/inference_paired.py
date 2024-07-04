@@ -45,13 +45,13 @@ if __name__ == "__main__":
         input_path = os.path.join(args.input_dir, input_name)
         # make sure that the input image is a multiple of 8
         input_image = Image.open(input_path).convert('RGB')
-        new_width = input_image.width - input_image.width % 8
-        new_height = input_image.height - input_image.height % 8
-        #new_height = 512
-        #new_width = int(new_height * (input_image.width / input_image.height))
-        #new_width = new_width - new_width % 8
+        #new_width = input_image.width - input_image.width % 8
+        #new_height = input_image.height - input_image.height % 8
+        new_height = 384
+        new_width = int(new_height * (input_image.width / input_image.height))
+        new_width = new_width - new_width % 8
         
-        input_image = input_image.filter(ImageFilter.BLUR)
+        #input_image = input_image.filter(ImageFilter.BLUR)
 
         input_image = input_image.resize((new_width, new_height), Image.LANCZOS)
         bname = input_name
