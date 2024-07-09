@@ -33,8 +33,6 @@ if __name__ == "__main__":
         raise ValueError('Either model_name or model_path should be provided')
 
     os.makedirs(args.output_dir, exist_ok=True)
-    os.makedirs(os.path.join(args.output_dir, 'concat'), exist_ok=True)
-    os.makedirs(os.path.join(args.output_dir, 'generated'), exist_ok=True)
 
     # initialize the model
     model = Pix2Pix_Turbo(pretrained_name=args.model_name, pretrained_path=args.model_path)
@@ -47,14 +45,13 @@ if __name__ == "__main__":
         input_path = os.path.join(args.input_dir, input_name)
         # make sure that the input image is a multiple of 8
         input_image = Image.open(input_path).convert('RGB')
-        #new_width = input_image.width - input_image.width % 8
-        #new_height = input_image.height - input_image.height % 8
+        new_width = input_image.width - input_image.width % 8
+        new_height = input_image.height - input_image.height % 8
+        #new_height = 512
+        #new_width = int(new_height * (input_image.width / input_image.height))
+        #new_width = new_width - new_width % 8
         
-        new_height = 512
-        new_width = int(new_height * (input_image.width / input_image.height))
-        new_width = new_width - new_width % 8
-        
-        #input_image = input_image.filter(ImageFilter.BLUR)
+        input_image = input_image.filter(ImageFilter.BLUR)
 
         input_image = input_image.resize((new_width, new_height), Image.LANCZOS)
         bname = input_name
@@ -82,13 +79,9 @@ if __name__ == "__main__":
 
             output_pil = transforms.ToPILImage()(output_image[0].cpu() * 0.5 + 0.5)
         
-        #concat_pil = get_concat_h(input_image, output_pil)
-
-        #concat_pil = concat_pil.resize((224, 112), Image.LANCZOS)
-        output_pil = output_pil.resize((112, 112), Image.LANCZOS)
+        concat_pil = get_concat_h(input_image, output_pil)
 
         # save the output image
-        #concat_pil.save(os.path.join(args.output_dir, 'concat', bname))
-        output_pil.save(os.path.join(args.output_dir, 'generated', bname))
+        concat_pil.save(os.path.join(args.output_dir, bname))
 
     print("Full Time: ", start_time - time.time())

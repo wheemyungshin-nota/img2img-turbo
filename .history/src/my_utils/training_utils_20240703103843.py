@@ -8,7 +8,6 @@ from torchvision import transforms
 import torchvision.transforms.functional as F
 from glob import glob
 
-TRANS_MARGIN = 32
 
 def parse_args_paired_training(input_args=None):
     """
@@ -194,11 +193,10 @@ def build_transform(image_prep):
     Returns:
     - torchvision.transforms.Compose: A composable sequence of transformations to be applied to images.
     """
-
     if image_prep == "resized_crop_512":
         T = transforms.Compose([
-            transforms.Resize(512+TRANS_MARGIN, interpolation=transforms.InterpolationMode.LANCZOS),
-            transforms.CenterCrop(512+TRANS_MARGIN),
+            transforms.Resize(512, interpolation=transforms.InterpolationMode.LANCZOS),
+            transforms.CenterCrop(512),
         ])
     elif image_prep == "resize_286_randomcrop_256x256_hflip":
         T = transforms.Compose([
@@ -220,116 +218,35 @@ def build_transform(image_prep):
         T = transforms.Compose([
             transforms.ColorJitter(brightness=0.2, contrast=0.2, hue=0.1),
             transforms.GaussianBlur(kernel_size=5, sigma=(0.2, 4.)),
-            transforms.Resize(512+TRANS_MARGIN, interpolation=transforms.InterpolationMode.LANCZOS),
-            transforms.CenterCrop(512+TRANS_MARGIN),
+            transforms.Resize(256, interpolation=transforms.InterpolationMode.LANCZOS),
+            transforms.CenterCrop(256),
         ])
     elif image_prep == "random_vary_input_s256":
         T = transforms.Compose([
             transforms.ColorJitter(brightness=0.2, contrast=0.2, hue=0.1),
             transforms.GaussianBlur(kernel_size=5, sigma=(0.2, 4.)),
-            transforms.Resize(256+TRANS_MARGIN, interpolation=transforms.InterpolationMode.LANCZOS),
-            transforms.CenterCrop(256+TRANS_MARGIN),
+            transforms.Resize(256, interpolation=transforms.InterpolationMode.LANCZOS),
+            transforms.CenterCrop(256),
         ])
-    elif image_prep == "sharp_vary_input_s256":
+    elif image_prep == "random_vary_input_s256":
         T = transforms.Compose([
             transforms.ColorJitter(brightness=0.2, contrast=0.2, hue=0.1),
-            transforms.RandomAdjustSharpness(sharpness_factor=2),
-            transforms.Resize(256+TRANS_MARGIN, interpolation=transforms.InterpolationMode.LANCZOS),
-            transforms.CenterCrop(256+TRANS_MARGIN),
-        ])
-    elif image_prep == "weak_vary_input_s512":
-        T = transforms.Compose([
-            transforms.ColorJitter(brightness=0.2, contrast=0.2, hue=0.1),
-            transforms.GaussianBlur(kernel_size=3, sigma=(0.2, 2.)),
-            transforms.Resize(512+TRANS_MARGIN, interpolation=transforms.InterpolationMode.LANCZOS),
-            transforms.CenterCrop(512+TRANS_MARGIN),
+            transforms.GaussianBlur(kernel_size=5, sigma=(0.2, 4.)),
+            transforms.Resize(256, interpolation=transforms.InterpolationMode.LANCZOS),
+            transforms.CenterCrop(256),
         ])
 
-    #stronger_vary_input
-    elif image_prep == "stronger_vary_input_s512":
-        T = transforms.Compose([
-            transforms.ColorJitter(brightness=0.3, contrast=0.3, hue=0.2),
-            transforms.GaussianBlur(kernel_size=5, sigma=(0.2, 4.)),
-            transforms.Resize(512+TRANS_MARGIN, interpolation=transforms.InterpolationMode.LANCZOS),
-            transforms.CenterCrop(512+TRANS_MARGIN),
-        ])
-    elif image_prep == "stronger_vary_input_s448":
-        T = transforms.Compose([
-            transforms.ColorJitter(brightness=0.3, contrast=0.3, hue=0.2),
-            transforms.GaussianBlur(kernel_size=5, sigma=(0.2, 4.)),
-            transforms.Resize(448+TRANS_MARGIN, interpolation=transforms.InterpolationMode.LANCZOS),
-            transforms.CenterCrop(448+TRANS_MARGIN),
-        ])
-    elif image_prep == "stronger_vary_input_s384":
-        T = transforms.Compose([
-            transforms.ColorJitter(brightness=0.3, contrast=0.3, hue=0.2),
-            transforms.GaussianBlur(kernel_size=5, sigma=(0.2, 4.)),
-            transforms.Resize(384+TRANS_MARGIN, interpolation=transforms.InterpolationMode.LANCZOS),
-            transforms.CenterCrop(384+TRANS_MARGIN),
-        ])
-    elif image_prep == "stronger_vary_input_s320":
-        T = transforms.Compose([
-            transforms.ColorJitter(brightness=0.3, contrast=0.3, hue=0.2),
-            transforms.GaussianBlur(kernel_size=5, sigma=(0.2, 4.)),
-            transforms.Resize(320+TRANS_MARGIN, interpolation=transforms.InterpolationMode.LANCZOS),
-            transforms.CenterCrop(320+TRANS_MARGIN),
-        ])
-    elif image_prep == "stronger_vary_input_s256":
-        T = transforms.Compose([
-            transforms.ColorJitter(brightness=0.3, contrast=0.3, hue=0.2),
-            transforms.GaussianBlur(kernel_size=5, sigma=(0.2, 4.)),
-            transforms.Resize(256+TRANS_MARGIN, interpolation=transforms.InterpolationMode.LANCZOS),
-            transforms.CenterCrop(256+TRANS_MARGIN),
-        ])
-    elif image_prep == "stronger_vary_input_s192":
-        T = transforms.Compose([
-            transforms.ColorJitter(brightness=0.3, contrast=0.3, hue=0.2),
-            transforms.GaussianBlur(kernel_size=5, sigma=(0.2, 4.)),
-            transforms.Resize(192+TRANS_MARGIN, interpolation=transforms.InterpolationMode.LANCZOS),
-            transforms.CenterCrop(192+TRANS_MARGIN),
-        ])
-    elif image_prep == "stronger_vary_input_s128":
-        T = transforms.Compose([
-            transforms.ColorJitter(brightness=0.3, contrast=0.3, hue=0.2),
-            transforms.GaussianBlur(kernel_size=5, sigma=(0.2, 4.)),
-            transforms.Resize(128+TRANS_MARGIN, interpolation=transforms.InterpolationMode.LANCZOS),
-            transforms.CenterCrop(128+TRANS_MARGIN),
-        ])
-
-
-    elif image_prep == "resized_crop_448":
-        T = transforms.Compose([
-            transforms.Resize(448+TRANS_MARGIN, interpolation=transforms.InterpolationMode.LANCZOS),
-            transforms.CenterCrop(448+TRANS_MARGIN),
-        ])
-    elif image_prep == "resized_crop_384":
-        T = transforms.Compose([
-            transforms.Resize(384+TRANS_MARGIN, interpolation=transforms.InterpolationMode.LANCZOS),
-            transforms.CenterCrop(384+TRANS_MARGIN),
-        ])
-    elif image_prep == "resized_crop_320":
-        T = transforms.Compose([
-            transforms.Resize(320+TRANS_MARGIN, interpolation=transforms.InterpolationMode.LANCZOS),
-            transforms.CenterCrop(320+TRANS_MARGIN),
-        ])
     elif image_prep == "resized_crop_256":
         T = transforms.Compose([
-            transforms.Resize(256+TRANS_MARGIN, interpolation=transforms.InterpolationMode.LANCZOS),
-            transforms.CenterCrop(256+TRANS_MARGIN),
+            transforms.Resize(256, interpolation=transforms.InterpolationMode.LANCZOS),
+            transforms.CenterCrop(256),
         ])
-    elif image_prep == "resized_crop_192":
-        T = transforms.Compose([
-            transforms.Resize(192+TRANS_MARGIN, interpolation=transforms.InterpolationMode.LANCZOS),
-            transforms.CenterCrop(192+TRANS_MARGIN),
-        ])
+
     elif image_prep == "resized_crop_128":
         T = transforms.Compose([
-            transforms.Resize(128+TRANS_MARGIN, interpolation=transforms.InterpolationMode.LANCZOS),
-            transforms.CenterCrop(128+TRANS_MARGIN),
+            transforms.Resize(128, interpolation=transforms.InterpolationMode.LANCZOS),
+            transforms.CenterCrop(128),
         ])
-    else:
-        raise ValueError(image_prep + " is not defined.")
-
     return T
 
 
@@ -352,7 +269,6 @@ class PairedDataset(torch.utils.data.Dataset):
         - tokenizer: The tokenizer used for tokenizing the captions (or prompts).
         """
         super().__init__()
-        self.split = split
         if split == "train":
             self.input_folder = os.path.join(dataset_folder, "train_A")
             self.output_folder = os.path.join(dataset_folder, "train_B")
@@ -365,32 +281,7 @@ class PairedDataset(torch.utils.data.Dataset):
             self.captions = json.load(f)
         self.img_names = list(self.captions.keys())
         self.T = build_transform(image_prep)
-
-        self.input_image_prep = input_image_prep
-        if self.input_image_prep == 'stronger_vary_input':
-            self.random_input_T_s512 = build_transform('stronger_vary_input_s512')
-            self.random_input_T_s448 = build_transform('stronger_vary_input_s448')
-            self.random_input_T_s384 = build_transform('stronger_vary_input_s384')
-            self.random_input_T_s320 = build_transform('stronger_vary_input_s320')
-            
-            self.random_input_T_s256 = build_transform('stronger_vary_input_s256')
-            self.random_input_T_s192 = build_transform('stronger_vary_input_s192')
-            self.random_input_T_s128 = build_transform('stronger_vary_input_s128')
-            
-            self.T_s512 = build_transform("resized_crop_512")
-            self.T_s448 = build_transform("resized_crop_448")
-            self.T_s384 = build_transform("resized_crop_384")
-            self.T_s320 = build_transform("resized_crop_320")
-
-            self.T_s256 = build_transform("resized_crop_256")
-            self.T_s192 = build_transform("resized_crop_192")
-            self.T_s128 = build_transform("resized_crop_128")
-        else:
-            self.random_input_T = build_transform(input_image_prep)
-        
-        self.alpha_sharp_T = build_transform("sharp_vary_input_s256")
-        self.beta_blur_T = build_transform("random_vary_input_s256")
-
+        self.random_input_T = build_transform(input_image_prep)
         self.tokenizer = tokenizer
 
     def __len__(self):
@@ -428,111 +319,24 @@ class PairedDataset(torch.utils.data.Dataset):
         should be compatible with the models intended to be used with this dataset.
         """
         img_name = self.img_names[idx]
-        input_img = Image.open(os.path.join(self.input_folder, img_name)) # [C, H, W]
-        output_img = Image.open(os.path.join(self.output_folder, img_name)) # [C, H, W]
+        input_img = Image.open(os.path.join(self.input_folder, img_name))
+        output_img = Image.open(os.path.join(self.output_folder, img_name))
         caption = self.captions[img_name]
-
-        if self.split == 'train':
-            if random.random() < 0.5:
-                input_img = input_img.transpose(Image.FLIP_LEFT_RIGHT)
-                output_img = output_img.transpose(Image.FLIP_LEFT_RIGHT)
-
 
         # input images scaled to 0,1
         #img_t = self.T(input_img)
-        if self.split == 'train':
-            if self.input_image_prep == 'stronger_vary_input':
-                random_img_size_param = random.random()
-                if random_img_size_param < 0.5:
-                    img_size = 512
-                    if random.random() < 0.6:
-                        img_t = self.random_input_T_s512(input_img)
-                    else:
-                        img_t = self.T_s512(input_img)
-                elif 0.5 < random_img_size_param < 0.7:
-                    img_size = 448
-                    if random.random() < 0.6:
-                        img_t = self.random_input_T_s448(input_img)
-                    else:
-                        img_t = self.T_s448(input_img)
-                elif 0.7 < random_img_size_param < 0.9:
-                    img_size = 384
-                    if random.random() < 0.6:
-                        img_t = self.random_input_T_s384(input_img)
-                    else:
-                        img_t = self.T_s384(input_img)
-                else:
-                    img_size = 320
-                    if random.random() < 0.6:
-                        img_t = self.random_input_T_s320(input_img)
-                    else:
-                        img_t = self.T_s320(input_img)
-
-                '''
-                if random_img_size_param < 0.5:
-                    img_size = 256
-                    img_t = self.random_input_T_s256(input_img)
-                elif 0.5 < random_img_size_param < 0.8:
-                    img_size = 192
-                    img_t = self.random_input_T_s192(input_img)
-                else:
-                    img_size = 128
-                    img_t = self.random_input_T_s128(input_img)
-                '''
-
-            elif self.input_image_prep in ["weak_vary_input_s512"]:
-                if random.random() < 0.5:
-                    img_t = self.random_input_T(input_img)
-                else:
-                    img_t = self.T(input_img)
-            else:
-                img_t = self.random_input_T(input_img)
-        else:
-            img_t = self.T(input_img)
-            
-        '''
-        if 'alpha' in img_name:
-            img_t = self.alpha_sharp_T(input_img)
-        elif 'belta' in img_name:
-            if random.random() < 0.5:
-                img_t = self.beta_blur_T(input_img)
-            else:
-                img_t = self.T(input_img)
-        else:
-            img_t = self.T(input_img)
-        '''                
+        img_t = self.random_input_T(input_img)
         img_t = F.to_tensor(img_t)
-
         # output images scaled to -1,1
-        if self.split == 'train' and self.input_image_prep == 'stronger_vary_input':
-            if img_size == 512:
-                output_t = self.T_s512(output_img)
-            elif img_size == 448:
-                output_t = self.T_s448(output_img)
-            elif img_size == 384:
-                output_t = self.T_s384(output_img)                
-            elif img_size == 320:
-                output_t = self.T_s320(output_img)
-                
-            elif img_size == 256:
-                output_t = self.T_s256(output_img)
-            elif img_size == 192:
-                output_t = self.T_s192(output_img)
-            elif img_size == 128:
-                output_t = self.T_s128(output_img)
-            else:
-                output_t = self.T_s512(output_img)
-        else:
-            output_t = self.T(output_img)
+        output_t = self.T(output_img)
         output_t = F.to_tensor(output_t)
         output_t = F.normalize(output_t, mean=[0.5], std=[0.5])
 
-        random_crop_y1 = random.randint(0, TRANS_MARGIN)
-        random_crop_x1 = random.randint(0, TRANS_MARGIN)
-        random_crop_y2 = img_t.shape[2]-TRANS_MARGIN+random_crop_y1
-        random_crop_x2 = img_t.shape[1]-TRANS_MARGIN+random_crop_x1
-        img_t = img_t[:, random_crop_y1:random_crop_y2, random_crop_x1:random_crop_x2]
-        output_t = output_t[:, random_crop_y1:random_crop_y2, random_crop_x1:random_crop_x2]
+        print(output_t.shape)
+        print(img_t.shape)
+        if random.random() < 0.5:
+            output_t = output_t[:, :, ::-1, :]
+            img_t = img_t[:, :, ::-1, :]
 
         input_ids = self.tokenizer(
             caption, max_length=self.tokenizer.model_max_length,

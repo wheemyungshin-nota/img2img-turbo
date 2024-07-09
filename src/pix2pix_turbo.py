@@ -114,7 +114,7 @@ class Pix2Pix_Turbo(torch.nn.Module):
             unet.load_state_dict(_sd_unet)
             
         elif pretrained_path is not None:            
-            if "zigbang" in pretrained_name:
+            if pretrained_name is not None and "zigbang" in pretrained_name:
                 outf = os.path.join(pretrained_name)
                 p_ckpt = outf
                 sd = torch.load(p_ckpt, map_location="cpu")
