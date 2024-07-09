@@ -82,13 +82,13 @@ if __name__ == "__main__":
 
             output_pil = transforms.ToPILImage()(output_image[0].cpu() * 0.5 + 0.5)
         
-        #concat_pil = get_concat_h(input_image, output_pil)
+        concat_pil = get_concat_h(input_image, output_pil)
 
-        #concat_pil = concat_pil.resize((224, 112), Image.LANCZOS)
+        concat_pil = concat_pil.resize((224, 112), Image.LANCZOS)
         output_pil = output_pil.resize((112, 112), Image.LANCZOS)
 
         # save the output image
-        #concat_pil.save(os.path.join(args.output_dir, 'concat', bname))
+        concat_pil.save(os.path.join(args.output_dir, 'concat', bname))
         output_pil.save(os.path.join(args.output_dir, 'generated', bname))
 
     print("Full Time: ", start_time - time.time())
