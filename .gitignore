@@ -1,5 +1,6 @@
 single_step_translation/
 *.pkl
+output*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
